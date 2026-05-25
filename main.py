@@ -4,6 +4,7 @@ import json
 import subprocess
 import shutil
 import smtplib
+import sys
 from datetime import datetime, date, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -13,11 +14,11 @@ from google.genai import types
 from youtube_transcript_api import YouTubeTranscriptApi
 
 # ================================================================
-# Configuração via variáveis de ambiente (GitHub Secrets)
+# Configuração via variáveis de ambiente
 # ================================================================
-GEMINI_API_KEY    = os.environ['GEMINI_API_KEY']
-EMAIL_REMETENTE   = os.environ['EMAIL_REMETENTE']
-EMAIL_SENHA_APP   = os.environ['EMAIL_SENHA_APP']
+GEMINI_API_KEY  = os.environ['GEMINI_API_KEY']
+EMAIL_REMETENTE = os.environ['EMAIL_REMETENTE']
+EMAIL_SENHA_APP = os.environ['EMAIL_SENHA_APP']
 
 with open('config.json', encoding='utf-8') as f:
     CONFIG = json.load(f)
@@ -25,9 +26,8 @@ DESTINATARIOS = CONFIG['destinatarios']
 
 MODELO_PRINCIPAL = 'gemini-3.1-flash-lite'
 client    = genai.Client(api_key=GEMINI_API_KEY)
-YTDLP_CMD = shutil.which('yt-dlp') or ['yt-dlp']
-if isinstance(YTDLP_CMD, str):
-    YTDLP_CMD = [YTDLP_CMD]
+_ytdlp_bin = shutil.which('yt-dlp')
+YTDLP_CMD  = [_ytdlp_bin] if _ytdlp_bin else [sys.executable, '-m', 'yt_dlp']
 
 # ================================================================
 # Canais validados
@@ -74,7 +74,7 @@ NÃO é morning call:
 
 IMPORTANTE:
 - O vídeo DEVE ser do dia {data} (formato YYYYMMDD = {data_yyyymmdd})
-- Se nenhum vídeo do dia for morning call, retorne null
+- Se nenhum vídeo do dia for morning call, retorne null no id
 - Escolha apenas UM vídeo
 
 Retorne SOMENTE JSON puro:
@@ -139,15 +139,13 @@ def buscar_video_canal(nome_canal: str, config: dict,
                 v['data'] = release
             elif upload and upload not in ('NA', 'None', ''):
                 v['data'] = upload
-            else:
-                v['data'] = ''
         except Exception:
             v['data'] = ''
 
     videos_do_dia = [v for v in videos if v['data'] == dia_str]
 
     if not videos_do_dia:
-        ultimo     = max(videos, key=lambda x: x['data']) if videos else None
+        ultimo     = max((v for v in videos if v['data']), key=lambda x: x['data'], default=None)
         ultima_data = ultimo['data'] if ultimo else 'desconhecida'
         return None, f'nenhum vídeo publicado em {dia_alvo.strftime("%d/%m/%Y")} (último: {ultima_data})'
 
@@ -173,7 +171,7 @@ def buscar_video_canal(nome_canal: str, config: dict,
         )
     )
 
-    texto    = re.sub(r'^```json\s*|\s*```$', '', resposta.text.strip(), flags=re.MULTILINE).strip()
+    texto     = re.sub(r'^```json\s*|\s*```$', '', resposta.text.strip(), flags=re.MULTILINE).strip()
     resultado = json.loads(texto)
 
     escolhido_id = resultado.get('escolhido', {}).get('id')
@@ -187,7 +185,7 @@ def buscar_video_canal(nome_canal: str, config: dict,
         return None, f'IA escolheu id {escolhido_id} mas não encontrado na lista'
 
     if video['duracao_seg'] < 300:
-        return None, f'vídeo muito curto ({video["duracao_seg"]}s)'
+        return None, f'vídeo selecionado muito curto ({video["duracao_seg"]}s) — provável live em andamento'
 
     print(f'   ✅ [{nome_canal}] {video["titulo"][:55]} ({video["duracao_seg"]//60}min)')
     print(f'      Motivo IA: {motivo_ia}')
@@ -215,6 +213,9 @@ def obter_transcricao(url_ou_id: str) -> dict:
             break
         except Exception:
             continue
+
+    if transcript is None:
+        raise RuntimeError('nenhuma transcrição encontrada para este vídeo')
 
     segmentos = transcript.fetch()
     texto     = ' '.join(s.text for s in segmentos)
