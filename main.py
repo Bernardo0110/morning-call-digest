@@ -380,12 +380,69 @@ def enviar_email_sem_digest(data_ref: str, canais_ausentes: dict):
 
 
 # ================================================================
+# Verificação de bloqueio de IP
+# ================================================================
+def verificar_ip_bloqueado() -> bool:
+    """Testa uma transcrição rápida antes de começar o pipeline.
+    Retorna True se o IP estiver bloqueado."""
+    VIDEO_TESTE = 'jNQXAC9IVRw'  # "Me at the zoo" — primeiro vídeo do YouTube, sempre disponível
+    try:
+        ytt = YouTubeTranscriptApi()
+        ytt.list(VIDEO_TESTE)
+        return False
+    except Exception as e:
+        msg = str(e).lower()
+        if 'blocked' in msg or 'bot' in msg or 'ip' in msg:
+            return True
+        return False
+
+
+def enviar_email_ip_bloqueado(data_ref: str):
+    html = f"""
+    <html><body style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#222;">
+      <div style="background:#1a1a2e;padding:20px 28px;border-radius:8px 8px 0 0;">
+        <h2 style="color:#fff;margin:0;font-size:18px;">📊 Morning Call Digest</h2>
+        <p style="color:#aaa;margin:4px 0 0 0;font-size:13px;">{data_ref}</p>
+      </div>
+      <div style="background:#f9f9f9;padding:24px 28px;border:1px solid #e0e0e0;border-top:none;">
+        <div style="background:#fff3e0;border-left:4px solid #e65100;
+                    padding:12px 16px;border-radius:4px;">
+          <p style="margin:0 0 8px 0;font-weight:bold;color:#bf360c;">
+            🚫 IP bloqueado pelo YouTube</p>
+          <p style="font-size:13px;color:#555;margin:0;">
+            O script detectou bloqueio antes de iniciar e abortou para não forçar o IP.
+            O bloqueio é temporário — tente rodar manualmente mais tarde.</p>
+        </div>
+      </div>
+    </body></html>"""
+
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = f'📊 Morning Call Digest — {data_ref} — 🚫 IP bloqueado'
+    msg['From']    = EMAIL_REMETENTE
+    msg['To']      = ', '.join(DESTINATARIOS)
+    msg.attach(MIMEText(f'IP bloqueado pelo YouTube em {data_ref}. Tente manualmente mais tarde.', 'plain', 'utf-8'))
+    msg.attach(MIMEText(html, 'html', 'utf-8'))
+
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+        smtp.login(EMAIL_REMETENTE, EMAIL_SENHA_APP)
+        smtp.sendmail(EMAIL_REMETENTE, DESTINATARIOS, msg.as_string())
+    print('✅ Email de aviso de IP bloqueado enviado')
+
+
+# ================================================================
 # Pipeline principal
 # ================================================================
 def main():
     dia      = ultimo_dia_util()
     data_ref = dia.strftime('%d/%m/%Y')
     print(f'🗓️  Digest de: {data_ref}\n')
+
+    print('🔍 Verificando bloqueio de IP...')
+    if verificar_ip_bloqueado():
+        print('🚫 IP bloqueado — abortando para não forçar. Email de aviso enviado.')
+        enviar_email_ip_bloqueado(data_ref)
+        return
+    print('✅ IP liberado — iniciando coleta\n')
 
     transcricoes_por_canal = {}
     canais_ausentes        = {}
