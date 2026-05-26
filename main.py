@@ -22,7 +22,11 @@ EMAIL_SENHA_APP = os.environ['EMAIL_SENHA_APP']
 
 with open('config.json', encoding='utf-8') as f:
     CONFIG = json.load(f)
-DESTINATARIOS = CONFIG['destinatarios']
+
+_test_mode = os.environ.get('TEST_MODE', '').strip().lower() == 'true'
+DESTINATARIOS = [EMAIL_REMETENTE] if _test_mode else CONFIG['destinatarios']
+if _test_mode:
+    print('⚠️  TEST_MODE ativo — email enviado apenas para o remetente')
 
 MODELO_PRINCIPAL = 'gemini-3.1-flash-lite'
 client    = genai.Client(api_key=GEMINI_API_KEY)

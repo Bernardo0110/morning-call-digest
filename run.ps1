@@ -25,7 +25,7 @@ $inicio  = Get-Date -Format "HH:mm:ss"
 
 "[$inicio] Iniciando Morning Call Digest" | Tee-Object -FilePath $logFile -Append
 
-python main.py 2>&1 | Tee-Object -FilePath $logFile -Append
+py main.py 2>&1 | Tee-Object -FilePath $logFile -Append
 
 $fim = Get-Date -Format "HH:mm:ss"
 "[$fim] Script finalizado" | Tee-Object -FilePath $logFile -Append
