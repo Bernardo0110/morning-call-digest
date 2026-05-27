@@ -18,7 +18,7 @@ $wakeAction   = New-ScheduledTaskAction `
 $wakeTrigger  = New-ScheduledTaskTrigger `
     -Weekly `
     -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday `
-    -At "09:25AM"
+    -At "09:55AM"
 
 $wakeSettings = New-ScheduledTaskSettingsSet `
     -WakeToRun `
@@ -36,7 +36,7 @@ Register-ScheduledTask `
     -InputObject $wakeTask `
     -Force | Out-Null
 
-Write-Host "Tarefa de acordar criada: MorningCallDigest_Wake (09:25, seg-sex)"
+Write-Host "Tarefa de acordar criada: MorningCallDigest_Wake (09:55, seg-sex)"
 
 # ---------- Tarefa 2: roda o script ao meio-dia ----------
 $runAction   = New-ScheduledTaskAction `
@@ -47,7 +47,7 @@ $runAction   = New-ScheduledTaskAction `
 $runTrigger  = New-ScheduledTaskTrigger `
     -Weekly `
     -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday `
-    -At "09:30AM"
+    -At "10:00AM"
 
 $runSettings = New-ScheduledTaskSettingsSet `
     -WakeToRun `
@@ -72,7 +72,7 @@ Register-ScheduledTask `
     -InputObject $runTask `
     -Force | Out-Null
 
-Write-Host "Tarefa principal criada:  MorningCallDigest_Run  (09:30, seg-sex)"
+Write-Host "Tarefa principal criada:  MorningCallDigest_Run  (10:00, seg-sex)"
 Write-Host ""
 Write-Host "Configuracao concluida. Verifique no Task Scheduler (taskschd.msc)."
 Write-Host "Para testar agora: Right-click em MorningCallDigest_Run > Run"

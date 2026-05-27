@@ -49,7 +49,7 @@ CANAIS_MORNING_CALL = {
 def ultimo_dia_util() -> date:
     agora = datetime.now()
     hoje  = agora.date()
-    if hoje.weekday() < 5 and agora.hour >= 10:
+    if hoje.weekday() < 5 and agora.hour >= 9:
         return hoje
     d = hoje - timedelta(days=1)
     while d.weekday() >= 5:
