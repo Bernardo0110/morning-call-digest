@@ -51,7 +51,7 @@ $runTrigger  = New-ScheduledTaskTrigger `
 
 $runSettings = New-ScheduledTaskSettingsSet `
     -WakeToRun `
-    -ExecutionTimeLimit (New-TimeSpan -Minutes 30) `
+    -ExecutionTimeLimit (New-TimeSpan -Hours 2) `
     -MultipleInstances IgnoreNew
 
 $runPrincipal = New-ScheduledTaskPrincipal `

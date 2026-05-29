@@ -5,6 +5,8 @@ import subprocess
 import shutil
 import smtplib
 import sys
+import time
+import random
 from datetime import datetime, date, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -27,6 +29,12 @@ _test_mode = os.environ.get('TEST_MODE', '').strip().lower() == 'true'
 DESTINATARIOS = [EMAIL_REMETENTE] if _test_mode else CONFIG['destinatarios']
 if _test_mode:
     print('⚠️  TEST_MODE ativo — email enviado apenas para o remetente')
+
+TENTATIVAS_TRANSCRICAO = 3
+ESPERA_RETRY_SEG       = 10 * 60  # 10 minutos entre tentativas de transcrição
+
+def _sleep_humano(minimo: float, maximo: float):
+    time.sleep(random.uniform(minimo, maximo))
 
 MODELO_PRINCIPAL = 'gemini-3.1-flash-lite'
 client    = genai.Client(api_key=GEMINI_API_KEY)
@@ -130,6 +138,7 @@ def buscar_video_canal(nome_canal: str, config: dict,
         })
 
     for v in videos:
+        _sleep_humano(3, 8)
         try:
             r2 = subprocess.run(
                 YTDLP_CMD + ['--no-warnings', '--skip-download',
@@ -451,8 +460,13 @@ def main():
     transcricoes_por_canal = {}
     canais_ausentes        = {}
     videos_info            = []
+    primeiro_canal         = True
 
     for nome, config in CANAIS_MORNING_CALL.items():
+        if not primeiro_canal:
+            _sleep_humano(12, 25)
+        primeiro_canal = False
+
         print(f'📡 [{nome}]')
         try:
             video, motivo = buscar_video_canal(nome, config, dia_alvo=dia)
@@ -461,7 +475,23 @@ def main():
                 print(f'   ⚠️  Ausente: {motivo}\n')
                 continue
 
-            transcricao = obter_transcricao(video['url'])
+            _sleep_humano(5, 12)
+
+            transcricao  = None
+            ultimo_erro  = None
+            for tentativa in range(1, TENTATIVAS_TRANSCRICAO + 1):
+                try:
+                    transcricao = obter_transcricao(video['url'])
+                    break
+                except Exception as e:
+                    ultimo_erro = e
+                    if tentativa < TENTATIVAS_TRANSCRICAO:
+                        print(f'   ⏳ Transcrição indisponível — aguardando 10min '
+                              f'(tentativa {tentativa}/{TENTATIVAS_TRANSCRICAO})...')
+                        time.sleep(ESPERA_RETRY_SEG)
+            if transcricao is None:
+                raise ultimo_erro
+
             transcricoes_por_canal[nome] = transcricao['texto_completo']
             videos_info.append({'canal': nome, 'titulo': video['titulo'], 'url': video['url']})
             print(f'   ✅ OK | {transcricao["duracao_segundos"]//60}min | '
