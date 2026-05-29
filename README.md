@@ -1,25 +1,27 @@
 # Morning Call Digest
 
-Automação que coleta os morning calls de 4 canais financeiros do YouTube, gera um resumo executivo com IA (Gemini) e envia por email todo dia útil às 9h30.
+Automação local que coleta os morning calls de 4 canais financeiros do YouTube, gera um resumo executivo com Gemini e envia por email todo dia útil às 10h30.
 
-**Canais monitorados:** BTG Pactual · Genial Investimentos · Investing.com BR · XP Oficial
+**Canais:** BTG Pactual · Genial Investimentos · Investing.com BR · XP Oficial
 
 ---
 
 ## Como funciona
 
 ```
-11h55 → Windows acorda o PC automaticamente (se estiver suspenso)
-12h00 → Task Scheduler executa run.ps1
-        ├── yt-dlp lista vídeos de cada canal
+10:25 → Windows acorda o PC automaticamente (se estiver suspenso)
+10:30 → Task Scheduler executa run.ps1
+        ├── Verifica bloqueio de IP (aborta e notifica se bloqueado)
+        ├── yt-dlp lista os últimos 20 vídeos de cada canal
+        ├── Consulta a data de cada vídeo individualmente
         ├── Gemini identifica qual é o morning call do dia
         ├── youtube-transcript-api baixa as transcrições
-        ├── Gemini gera resumo executivo em 3-4 parágrafos
+        ├── Gemini gera resumo executivo em 3–4 parágrafos
         └── Email HTML enviado via Gmail SMTP
-~12h10 → Script termina, email na caixa de entrada
+~11:00 → Script termina, PC volta a suspender após 30s
 ```
 
-> **Por que meio-dia?** Os morning calls são transmitidos ao vivo entre 9h e 10h30. O YouTube leva 2–4h para processar as legendas automáticas do VOD. Rodar ao meio-dia garante que todos os canais já têm transcrição disponível.
+> Os morning calls são transmitidos ao vivo entre 9h e 10h. O YouTube leva 30–90 min para processar as legendas automáticas do VOD. Rodar às 10h30 já cobre a maioria dos canais; os que ainda não têm transcrição são retentados por até 20 minutos antes de serem marcados como ausentes.
 
 ---
 
@@ -28,7 +30,7 @@ Automação que coleta os morning calls de 4 canais financeiros do YouTube, gera
 - Python 3.10+
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) instalado e no PATH
 - Conta Google com [Gemini API Key](https://aistudio.google.com/app/apikey)
-- Conta Gmail com [Senha de App](https://myaccount.google.com/apppasswords) gerada
+- Conta Gmail com [Senha de App](https://myaccount.google.com/apppasswords) (requer 2FA ativo)
 
 ---
 
@@ -44,25 +46,22 @@ pip install -r requirements.txt
 
 ### 2. Configure os segredos
 
-Copie o arquivo de exemplo e preencha com suas credenciais:
-
 ```powershell
 Copy-Item secrets.env.example secrets.env
 notepad secrets.env
 ```
 
-Conteúdo do `secrets.env`:
-```
-GEMINI_API_KEY=sua_chave_gemini_aqui
+```env
+GEMINI_API_KEY=sua_chave_aqui
 EMAIL_REMETENTE=seu_email@gmail.com
-EMAIL_SENHA_APP=xxxx xxxx xxxx xxxx   # senha de app do Gmail (16 caracteres)
+EMAIL_SENHA_APP=xxxx xxxx xxxx xxxx
 ```
 
 > `secrets.env` está no `.gitignore` e nunca será commitado.
 
 ### 3. Configure os destinatários
 
-Edite [config.json](config.json) com os emails que devem receber o digest:
+Edite [config.json](config.json):
 
 ```json
 {
@@ -76,6 +75,7 @@ Edite [config.json](config.json) com os emails que devem receber o digest:
 ### 4. Teste manualmente
 
 ```powershell
+$env:TEST_MODE = "true"   # envia só para o remetente
 .\run.ps1
 ```
 
@@ -83,7 +83,7 @@ Edite [config.json](config.json) com os emails que devem receber o digest:
 
 ## Agendamento automático (Windows Task Scheduler)
 
-O script roda localmente para evitar bloqueios de IP que afetam ambientes de CI/CD.
+O script roda **localmente** para evitar bloqueios de IP que afetam ambientes de CI/CD.
 
 ### Configurar as tarefas
 
@@ -93,43 +93,27 @@ Execute **como Administrador**:
 .\setup_task.ps1
 ```
 
-Isso cria duas tarefas no Windows:
+Cria duas tarefas no Windows:
 
 | Tarefa | Horário | Função |
 |--------|---------|--------|
-| `MorningCallDigest_Wake` | 11:55 seg–sex | Acorda o PC do modo de suspensão |
-| `MorningCallDigest_Run`  | 12:00 seg–sex | Executa o script e envia o email |
+| `MorningCallDigest_Wake` | 10:25 seg–sex | Acorda o PC (WakeToRun habilitado) |
+| `MorningCallDigest_Run`  | 10:30 seg–sex | Executa o script |
+
+> Apenas a tarefa `_Wake` tem WakeToRun habilitado. A `_Run` não precisa — o PC já está acordado quando ela dispara.
 
 ### Requisitos para o wake funcionar
 
-- Notebook **plugado na tomada** (não na bateria)
-- Suspensão **S3** (suspensão normal), não hibernação (`S4`) nem desligado
+- PC **plugado na tomada**
+- Suspensão **S3** (não hibernação S4, não desligado)
 - Wake timers habilitados no plano de energia:
 
 ```powershell
-# Verificar se wake timers estão ativos
 powercfg /query SCHEME_CURRENT SUB_SLEEP RTCWAKE
 ```
 
-Se o valor for `000`, habilite via Painel de Controle:
-> Opções de Energia → Alterar configurações do plano → Alterar configurações de energia avançadas → Suspender → Permitir temporizadores de ativação → **Habilitar**
-
-### Cookies do YouTube (recomendado)
-
-O yt-dlp precisa de cookies para acessar metadados de vídeos individuais sem ser bloqueado pelo YouTube. Existem duas formas:
-
-**Opção A — Arquivo de cookies (mais confiável)**
-
-1. Instale a extensão [Get cookies.txt LOCALLY](https://chrome.google.com/webstore/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) no Edge ou Chrome
-2. Acesse [youtube.com](https://youtube.com) logado na sua conta
-3. Clique no ícone da extensão e exporte para `youtube_cookies.txt`
-4. Coloque o arquivo na pasta do projeto
-
-O script detecta o arquivo automaticamente e usa os cookies. Renove o arquivo a cada 1–2 anos quando os cookies expirarem.
-
-**Opção B — Cookies do browser (automático, mas requer browser fechado)**
-
-Se `youtube_cookies.txt` não existir, o script tenta ler os cookies direto do Edge/Chrome. Funciona apenas se o browser estiver **fechado** no momento da execução — o que deve ser o caso às 12h00 se o PC acordou do modo de suspensão.
+Se o valor for `000`, habilite via:
+> Opções de Energia → Alterar configurações do plano → Configurações de energia avançadas → Suspender → Permitir temporizadores de ativação → **Habilitar**
 
 ### Remover as tarefas
 
@@ -144,23 +128,26 @@ Unregister-ScheduledTask -TaskName "MorningCallDigest_Run"  -Confirm:$false
 
 ```
 morning-call-digest/
-├── main.py              # pipeline principal
-├── run.ps1              # wrapper local (carrega secrets e roda main.py)
-├── setup_task.ps1       # cria as tarefas no Task Scheduler (rodar como Admin)
-├── config.json          # lista de destinatários do email
-├── secrets.env          # credenciais locais (não commitado)
-├── secrets.env.example  # template de credenciais
-├── requirements.txt     # dependências Python
-└── .github/workflows/
-    └── digest.yml       # workflow GitHub Actions (alternativa via CI/CD)
+├── main.py              # orquestração do pipeline
+├── config.py            # constantes, env vars, cliente Gemini
+├── youtube.py           # busca de vídeos, transcrições, IP check
+├── summarizer.py        # geração do resumo com Gemini
+├── emailer.py           # construção e envio de emails
+├── run.ps1              # wrapper: carrega secrets, roda main.py, suspende PC
+├── setup_task.ps1       # registra tarefas no Task Scheduler (rodar como Admin)
+├── config.json          # lista de destinatários
+├── secrets.env          # credenciais (não commitado)
+├── secrets.env.example  # template
+└── requirements.txt     # dependências Python
 ```
 
 ---
 
-## Variáveis de ambiente / segredos
+## Variáveis de ambiente
 
-| Variável | Onde obter |
+| Variável | Descrição |
 |----------|-----------|
-| `GEMINI_API_KEY` | [Google AI Studio](https://aistudio.google.com/app/apikey) |
-| `EMAIL_REMETENTE` | Seu endereço Gmail |
-| `EMAIL_SENHA_APP` | [Senhas de app do Google](https://myaccount.google.com/apppasswords) — requer 2FA ativo |
+| `GEMINI_API_KEY` | Chave da [Google AI Studio](https://aistudio.google.com/app/apikey) |
+| `EMAIL_REMETENTE` | Endereço Gmail do remetente |
+| `EMAIL_SENHA_APP` | [Senha de app](https://myaccount.google.com/apppasswords) do Gmail (16 chars) |
+| `TEST_MODE` | Se `true`, envia email só para o remetente |
