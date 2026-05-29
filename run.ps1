@@ -21,6 +21,15 @@ $logsDir = Join-Path $PSScriptRoot "logs"
 if (-not (Test-Path $logsDir)) { New-Item -ItemType Directory -Path $logsDir | Out-Null }
 
 $logFile = Join-Path $logsDir ("{0}.log" -f (Get-Date -Format "yyyy-MM-dd"))
+
+# Guard: evita segunda execucao no mesmo dia (ex: Task Scheduler re-disparando apos suspend)
+if ((Test-Path $logFile) -and (Get-Content $logFile -Raw) -match "Script finalizado") {
+    Write-Host "$(Get-Date -Format 'HH:mm:ss') Execucao do dia ja concluida — abortando."
+    Start-Sleep -Seconds 10
+    rundll32.exe powrprof.dll,SetSuspendState 0,1,0
+    exit 0
+}
+
 $inicio  = Get-Date -Format "HH:mm:ss"
 
 "[$inicio] Iniciando Morning Call Digest" | Tee-Object -FilePath $logFile -Append
