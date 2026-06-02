@@ -1,44 +1,74 @@
 # run.ps1 — Carrega segredos e executa o Morning Call Digest
 Set-Location $PSScriptRoot
 
-$secretsFile = Join-Path $PSScriptRoot "secrets.env"
-if (-not (Test-Path $secretsFile)) {
-    Write-Error "Arquivo secrets.env nao encontrado. Copie secrets.env.example e preencha."
+$logsDir  = Join-Path $PSScriptRoot "logs"
+$hoje     = Get-Date -Format "yyyy-MM-dd"
+$logFile  = Join-Path $logsDir "$hoje.log"
+$errFile  = Join-Path $logsDir "$hoje.error.log"
+
+if (-not (Test-Path $logsDir)) { New-Item -ItemType Directory -Path $logsDir | Out-Null }
+
+function Write-Log ($msg) {
+    $linha = "[$(Get-Date -Format 'HH:mm:ss')] $msg"
+    Write-Host $linha
+    Add-Content -Path $logFile -Value $linha -Encoding UTF8
+}
+
+function Abort ($motivo) {
+    $linha = "[$(Get-Date -Format 'HH:mm:ss')] ERRO FATAL: $motivo"
+    Write-Host $linha
+    Add-Content -Path $errFile -Value $linha -Encoding UTF8
+    Start-Sleep -Seconds 10
+    rundll32.exe powrprof.dll,SetSuspendState 0,1,0
     exit 1
 }
 
-Get-Content $secretsFile | ForEach-Object {
-    if ($_ -match '^([^#\s][^=]+)=(.+)$') {
-        [System.Environment]::SetEnvironmentVariable($matches[1].Trim(), $matches[2].Trim(), 'Process')
-    }
-}
-
-$env:PYTHONIOENCODING = 'utf-8'
-$env:PYTHONUTF8       = '1'
-
-# Cria pasta de logs se nao existir
-$logsDir = Join-Path $PSScriptRoot "logs"
-if (-not (Test-Path $logsDir)) { New-Item -ItemType Directory -Path $logsDir | Out-Null }
-
-$logFile = Join-Path $logsDir ("{0}.log" -f (Get-Date -Format "yyyy-MM-dd"))
-
-# Guard: evita segunda execucao no mesmo dia (ex: Task Scheduler re-disparando apos suspend)
-if ((Test-Path $logFile) -and (Get-Content $logFile -Raw) -match "Script finalizado") {
-    Write-Host "$(Get-Date -Format 'HH:mm:ss') Execucao do dia ja concluida — abortando."
+# Guard: evita segunda execucao no mesmo dia
+if ((Test-Path $logFile) -and (Get-Content $logFile -Raw -Encoding UTF8) -match "Script finalizado") {
+    Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Execucao do dia ja concluida — abortando."
     Start-Sleep -Seconds 10
     rundll32.exe powrprof.dll,SetSuspendState 0,1,0
     exit 0
 }
 
-$inicio  = Get-Date -Format "HH:mm:ss"
+# Valida e carrega secrets.env
+$secretsFile = Join-Path $PSScriptRoot "secrets.env"
+if (-not (Test-Path $secretsFile)) { Abort "secrets.env nao encontrado em $PSScriptRoot" }
 
-"[$inicio] Iniciando Morning Call Digest" | Tee-Object -FilePath $logFile -Append
+try {
+    Get-Content $secretsFile -Encoding UTF8 | ForEach-Object {
+        if ($_ -match '^([^#\s][^=]+)=(.+)$') {
+            [System.Environment]::SetEnvironmentVariable($matches[1].Trim(), $matches[2].Trim(), 'Process')
+        }
+    }
+} catch {
+    Abort "Falha ao carregar secrets.env: $_"
+}
 
-py main.py 2>&1 | Tee-Object -FilePath $logFile -Append
+# Valida variaveis obrigatorias
+foreach ($var in @('GEMINI_API_KEY', 'EMAIL_REMETENTE', 'EMAIL_SENHA_APP')) {
+    if (-not [System.Environment]::GetEnvironmentVariable($var, 'Process')) {
+        Abort "Variavel $var ausente em secrets.env"
+    }
+}
 
-$fim = Get-Date -Format "HH:mm:ss"
-"[$fim] Script finalizado" | Tee-Object -FilePath $logFile -Append
+# Localiza Python
+$python = (Get-Command py     -ErrorAction SilentlyContinue)?.Source
+if (-not $python) {
+    $python = (Get-Command python -ErrorAction SilentlyContinue)?.Source
+}
+if (-not $python) { Abort "Python nao encontrado no PATH (py / python)" }
 
-# Volta a suspender após o script terminar
+$env:PYTHONIOENCODING = 'utf-8'
+$env:PYTHONUTF8       = '1'
+
+Write-Log "Iniciando Morning Call Digest | python=$python"
+
+# Roda o pipeline — sem 2>&1 para evitar NativeCommandError no PowerShell 5.1
+# stderr do Python vai para o console (capturado pelo Task Scheduler nos logs de evento)
+& $python main.py | Tee-Object -FilePath $logFile -Append
+
+Write-Log "Script finalizado"
+
 Start-Sleep -Seconds 30
 rundll32.exe powrprof.dll,SetSuspendState 0,1,0
