@@ -1,3 +1,4 @@
+import ctypes
 import time
 from datetime import date, datetime, timedelta
 
@@ -6,6 +7,35 @@ from emailer import enviar_aviso_ip_bloqueado, enviar_aviso_sem_digest, enviar_d
 from prices import obter_precos
 from summarizer import gerar_resumo
 from youtube import buscar_video_canal, obter_transcricao, sleep_humano, verificar_ip_bloqueado
+
+# Impede o Windows de suspender o PC por ociosidade durante a execução.
+# WakeToRun acorda o PC para a tarefa, mas NÃO o mantém acordado: sem atividade
+# de usuário, o timer de suspensão dispara e congela o processo no meio (foi o
+# que aconteceu em 03/06 — o run só terminou quando o PC foi religado à mão).
+# ES_SYSTEM_REQUIRED segura o sistema acordado; a suspensão intencional do
+# run.ps1 ao final continua funcionando porque é forçada.
+_ES_CONTINUOUS      = 0x80000000
+_ES_SYSTEM_REQUIRED = 0x00000001
+
+
+def _impedir_suspensao() -> None:
+    try:
+        fn = ctypes.windll.kernel32.SetThreadExecutionState
+        fn.argtypes = [ctypes.c_uint]
+        fn.restype  = ctypes.c_uint
+        if fn(_ES_CONTINUOUS | _ES_SYSTEM_REQUIRED):
+            print("🔌 Suspensão por ociosidade bloqueada durante a execução")
+        else:
+            print("⚠️  SetThreadExecutionState retornou 0 — suspensão não bloqueada")
+    except Exception as e:
+        print(f"⚠️  Não foi possível bloquear a suspensão: {str(e)[:80]}")
+
+
+def _permitir_suspensao() -> None:
+    try:
+        ctypes.windll.kernel32.SetThreadExecutionState(_ES_CONTINUOUS)
+    except Exception:
+        pass
 
 
 def ultimo_dia_util() -> date:
@@ -19,7 +49,7 @@ def ultimo_dia_util() -> date:
     return d
 
 
-def main() -> None:
+def _executar() -> None:
     dia      = ultimo_dia_util()
     data_ref = dia.strftime("%d/%m/%Y")
     print(f"🗓️  Digest de: {data_ref}\n")
@@ -92,6 +122,14 @@ def main() -> None:
         precos = []
 
     enviar_digest(resumo, data_ref, list(transcricoes.keys()), ausentes, videos_info, precos)
+
+
+def main() -> None:
+    _impedir_suspensao()
+    try:
+        _executar()
+    finally:
+        _permitir_suspensao()
 
 
 if __name__ == "__main__":
