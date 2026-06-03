@@ -2,7 +2,7 @@
 
 ## O que o projeto faz
 
-Automação Windows que roda seg–sex às 10h30 via Task Scheduler. Para cada um dos 4 canais (BTG, Genial, Investing, XP), busca o morning call do dia no YouTube, baixa a transcrição e gera um digest em 3–4 parágrafos com Gemini, enviado por email via Gmail SMTP.
+Automação Windows que roda seg–sex às 10h30 via Task Scheduler. Para cada um dos 5 canais (BTG, Genial, Investing, XP e PicPay/Diário Econômico), busca o morning call do dia no YouTube, baixa a transcrição e gera um digest em 3–4 parágrafos com Gemini. O email inclui ainda um painel de preços (Ibovespa, S&P 500, BTC, ETH, ouro e petróleo Brent) com variações de 3/7/30 dias. Enviado por email via Gmail SMTP.
 
 ## Como testar
 
@@ -23,7 +23,8 @@ py main.py
 | `config.py` | Constantes, env vars, cliente Gemini, YTDLP, CHANNELS |
 | `youtube.py` | Busca de vídeos, consulta de datas, transcrições, IP check |
 | `summarizer.py` | Geração do resumo com Gemini |
-| `emailer.py` | Construção e envio de todos os tipos de email |
+| `prices.py` | Busca preços e variações dos ativos (yfinance) para o painel de mercado |
+| `emailer.py` | Construção e envio de todos os tipos de email (inclui o painel de preços) |
 | `run.ps1` | Carrega `secrets.env`, roda `main.py`, suspende PC após 30s |
 | `setup_task.ps1` | Registra `MorningCallDigest_Wake` (10:25) e `_Run` (10:30) no Task Scheduler |
 | `config.json` | Lista de destinatários do email |
@@ -47,12 +48,19 @@ Ter `WakeToRun` na tarefa `_Run` cria um wake timer interno no Windows que acord
 **Guard de dupla execução em `run.ps1`**
 Se o log do dia já contiver `"Script finalizado"`, o `run.ps1` aborta imediatamente e volta a suspender o PC. Isso cobre qualquer cenário de re-disparo inesperado do Task Scheduler.
 
+**Por que o canal do PicPay (Diário Econômico) é diferente?**
+O `@PodcastDiarioEconomico` não tem aba `/streams` — é publicado como vídeo em `/videos`, então a URL em `CHANNELS` aponta para `/videos`. Os episódios são curtos (~5min), abaixo do `MIN_VIDEO_SECS=300` dos demais canais; por isso o picpay tem `min_secs=120` em `CHANNELS` (cada canal tem seu mínimo). Os títulos podem voltar traduzidos para inglês ("Economic Daily"), então o prompt de seleção reconhece "Diário Econômico/Economic Daily". O filtro por data usa `upload_date` (metadado, independe do idioma do título).
+
+**Por que os preços não passam pela IA?**
+O painel de mercado é informativo e determinístico (Yahoo Finance via `yfinance`, sem API key). Passar cotações pela IA só adicionaria custo e risco de alucinação. Os preços são buscados em `prices.py` e renderizados direto na tabela do email, em paralelo ao resumo. Qualquer falha (Yahoo fora do ar, símbolo sem dado) é capturada por ativo e/ou no `main.py` — o digest sempre é enviado, no pior caso com "—" na linha do ativo.
+
 ## Comportamento esperado por execução
 
 1. Verifica IP (se bloqueado, envia email de aviso e encerra)
 2. Para cada canal: flat-playlist → data por vídeo → filtra dia → IA seleciona → baixa transcrição (até 3 tentativas com 10min de espera)
 3. Gemini gera resumo consolidado
-4. Email enviado; log finalizado; PC suspende em 30s
+4. Busca preços de mercado (yfinance) para o painel — falha aqui nunca derruba o digest
+5. Email enviado (resumo + painel de preços); log finalizado; PC suspende em 30s
 
 ## Restrições importantes
 

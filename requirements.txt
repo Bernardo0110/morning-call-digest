@@ -1,4 +1,4 @@
 google-genai
 youtube-transcript-api
 yt-dlp
- 
+yfinance

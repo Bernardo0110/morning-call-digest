@@ -3,6 +3,7 @@ from datetime import date, datetime, timedelta
 
 from config import CHANNELS, TRANSCRIPT_RETRIES, TRANSCRIPT_RETRY_WAIT
 from emailer import enviar_aviso_ip_bloqueado, enviar_aviso_sem_digest, enviar_digest
+from prices import obter_precos
 from summarizer import gerar_resumo
 from youtube import buscar_video_canal, obter_transcricao, sleep_humano, verificar_ip_bloqueado
 
@@ -35,14 +36,14 @@ def main() -> None:
     videos_info:  list[dict]     = []
     primeiro = True
 
-    for canal, url in CHANNELS.items():
+    for canal, cfg in CHANNELS.items():
         if not primeiro:
             sleep_humano(12, 25)
         primeiro = False
 
         print(f"📡 [{canal}]")
         try:
-            video, motivo = buscar_video_canal(canal, url, dia_alvo=dia)
+            video, motivo = buscar_video_canal(canal, cfg["url"], dia_alvo=dia, min_secs=cfg["min_secs"])
             if not video:
                 ausentes[canal] = motivo
                 print(f"   ⚠️  Ausente: {motivo}\n")
@@ -83,7 +84,14 @@ def main() -> None:
     resumo = gerar_resumo(transcricoes, ausentes, data_ref)
     print(f'\n{"=" * 60}\n{resumo}\n{"=" * 60}\n')
 
-    enviar_digest(resumo, data_ref, list(transcricoes.keys()), ausentes, videos_info)
+    print("📈 Buscando preços de mercado...")
+    try:
+        precos = obter_precos()
+    except Exception as e:
+        print(f"⚠️  Falha ao buscar preços: {str(e)[:80]}")
+        precos = []
+
+    enviar_digest(resumo, data_ref, list(transcricoes.keys()), ausentes, videos_info, precos)
 
 
 if __name__ == "__main__":

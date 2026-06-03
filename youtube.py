@@ -21,6 +21,7 @@ Sua tarefa é identificar qual vídeo da lista abaixo é o MORNING CALL do dia {
 O morning call é um programa jornalístico de mercado transmitido toda manhã antes ou
 durante a abertura do pregão. Cada canal pode usar nomes diferentes:
 - "Morning Call", "Resumo da Manhã", "Abertura de Mercado", "Panorama do Dia"
+- "Diário Econômico" / "Economic Daily" (podcast diário de economia; o título pode vir traduzido para inglês)
 - Título com a data do dia + assuntos do mercado (ex: "22/05 Petróleo cai 5%...")
 
 NÃO é morning call:
@@ -70,6 +71,7 @@ def buscar_video_canal(
     url: str,
     dia_alvo: date,
     max_busca: int = 20,
+    min_secs: int = MIN_VIDEO_SECS,
 ) -> tuple[dict | None, str | None]:
     dia_str = dia_alvo.strftime("%Y%m%d")
 
@@ -173,7 +175,7 @@ def buscar_video_canal(
     if not video:
         return None, f"IA escolheu id {escolhido_id} mas não encontrado na lista"
 
-    if video["duracao_seg"] < MIN_VIDEO_SECS:
+    if video["duracao_seg"] < min_secs:
         return None, f'vídeo selecionado muito curto ({video["duracao_seg"]}s) — provável live em andamento'
 
     print(f'   ✅ [{canal}] {video["titulo"][:55]} ({video["duracao_seg"] // 60}min)')

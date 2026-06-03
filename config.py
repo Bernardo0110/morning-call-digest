@@ -31,9 +31,14 @@ client = genai.Client(api_key=GEMINI_KEY)
 _ytdlp = shutil.which("yt-dlp")
 YTDLP  = [_ytdlp] if _ytdlp else [sys.executable, "-m", "yt_dlp"]
 
-CHANNELS: dict[str, str] = {
-    "btg":       "https://www.youtube.com/@BTGPactual/streams",
-    "genial":    "https://www.youtube.com/@genialinvestimentos/streams",
-    "investing": "https://www.youtube.com/@investingcombr/streams",
-    "xp":        "https://www.youtube.com/@XP_Oficial/streams",
+# Cada canal aponta para a aba de vídeos/lives e define a duração mínima do
+# vídeo selecionado. min_secs filtra lives em andamento (duração ~0) e shorts.
+# PicPay (Diário Econômico) publica episódios curtos (~5min) em /videos, por
+# isso usa um mínimo menor; os demais são lives longas em /streams.
+CHANNELS: dict[str, dict] = {
+    "btg":       {"url": "https://www.youtube.com/@BTGPactual/streams",            "min_secs": MIN_VIDEO_SECS},
+    "genial":    {"url": "https://www.youtube.com/@genialinvestimentos/streams",   "min_secs": MIN_VIDEO_SECS},
+    "investing": {"url": "https://www.youtube.com/@investingcombr/streams",        "min_secs": MIN_VIDEO_SECS},
+    "xp":        {"url": "https://www.youtube.com/@XP_Oficial/streams",            "min_secs": MIN_VIDEO_SECS},
+    "picpay":    {"url": "https://www.youtube.com/@PodcastDiarioEconomico/videos", "min_secs": 120},
 }
