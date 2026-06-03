@@ -1,4 +1,4 @@
-# run.ps1 — Carrega segredos e executa o Morning Call Digest
+# run.ps1 - Carrega segredos e executa o Morning Call Digest
 Set-Location $PSScriptRoot
 
 $logsDir  = Join-Path $PSScriptRoot "logs"
@@ -25,7 +25,7 @@ function Abort ($motivo) {
 
 # Guard: evita segunda execucao no mesmo dia
 if ((Test-Path $logFile) -and (Get-Content $logFile -Raw -Encoding UTF8) -match "Script finalizado") {
-    Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Execucao do dia ja concluida — abortando."
+    Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Execucao do dia ja concluida - abortando."
     Start-Sleep -Seconds 10
     rundll32.exe powrprof.dll,SetSuspendState 0,1,0
     exit 0
@@ -53,9 +53,11 @@ foreach ($var in @('GEMINI_API_KEY', 'EMAIL_REMETENTE', 'EMAIL_SENHA_APP')) {
 }
 
 # Localiza Python
-$python = (Get-Command py     -ErrorAction SilentlyContinue)?.Source
+$_cmd = Get-Command py -ErrorAction SilentlyContinue
+$python = if ($_cmd) { $_cmd.Source } else { $null }
 if (-not $python) {
-    $python = (Get-Command python -ErrorAction SilentlyContinue)?.Source
+    $_cmd = Get-Command python -ErrorAction SilentlyContinue
+    $python = if ($_cmd) { $_cmd.Source } else { $null }
 }
 if (-not $python) { Abort "Python nao encontrado no PATH (py / python)" }
 
@@ -64,7 +66,7 @@ $env:PYTHONUTF8       = '1'
 
 Write-Log "Iniciando Morning Call Digest | python=$python"
 
-# Roda o pipeline — sem 2>&1 para evitar NativeCommandError no PowerShell 5.1
+# Roda o pipeline - sem 2>&1 para evitar NativeCommandError no PowerShell 5.1
 # stderr do Python vai para o console (capturado pelo Task Scheduler nos logs de evento)
 & $python main.py | Tee-Object -FilePath $logFile -Append
 
