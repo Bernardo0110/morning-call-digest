@@ -64,11 +64,18 @@ if (-not $python) { Abort "Python nao encontrado no PATH (py / python)" }
 $env:PYTHONIOENCODING = 'utf-8'
 $env:PYTHONUTF8       = '1'
 
+# Decodifica a saida UTF-8 do Python corretamente (senao acentos e emoji corrompem)
+try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
+
 Write-Log "Iniciando Morning Call Digest | python=$python"
 
-# Roda o pipeline - sem 2>&1 para evitar NativeCommandError no PowerShell 5.1
-# stderr do Python vai para o console (capturado pelo Task Scheduler nos logs de evento)
-& $python main.py | Tee-Object -FilePath $logFile -Append
+# Roda o pipeline - sem 2>&1 para evitar NativeCommandError no PowerShell 5.1.
+# stderr do Python vai para o console. Loga em UTF-8 linha a linha: o
+# Tee-Object do PS 5.1 gravaria UTF-16, embaralhando o log.
+& $python main.py | ForEach-Object {
+    Write-Host $_
+    Add-Content -Path $logFile -Value $_ -Encoding UTF8
+}
 
 Write-Log "Script finalizado"
 
