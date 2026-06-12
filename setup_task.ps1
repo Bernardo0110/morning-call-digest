@@ -25,10 +25,18 @@ $wakeSettings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit (New-TimeSpan -Minutes 2) `
     -MultipleInstances IgnoreNew
 
+# S4U = "Executar estando o usuario conectado ou nao". Sem isso, um reboot de
+# atualizacao do Windows desloga o usuario e a tarefa nao roda (nem arma o wake).
+$wakePrincipal = New-ScheduledTaskPrincipal `
+    -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) `
+    -LogonType S4U `
+    -RunLevel Limited
+
 $wakeTask = New-ScheduledTask `
     -Action $wakeAction `
     -Trigger $wakeTrigger `
     -Settings $wakeSettings `
+    -Principal $wakePrincipal `
     -Description "Acorda o PC para rodar o Morning Call Digest"
 
 Register-ScheduledTask `
@@ -49,13 +57,18 @@ $runTrigger  = New-ScheduledTaskTrigger `
     -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday `
     -At "10:30AM"
 
+# StartWhenAvailable = roda assim que possivel se o horario for perdido
+# (ex.: PC dormindo/desligado no momento do gatilho).
 $runSettings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit (New-TimeSpan -Hours 2) `
+    -StartWhenAvailable `
     -MultipleInstances IgnoreNew
 
+# S4U: roda mesmo sem o usuario logado (ex.: tela de bloqueio pos-atualizacao).
+# O main.py e headless (yt-dlp, SMTP), nao precisa de sessao de desktop.
 $runPrincipal = New-ScheduledTaskPrincipal `
     -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) `
-    -LogonType Interactive `
+    -LogonType S4U `
     -RunLevel Highest
 
 $runTask = New-ScheduledTask `
