@@ -65,7 +65,7 @@ def obter_precos() -> list[dict]:
                 "var_30d": _variacao(pares, 30),
             })
         except Exception as e:
-            print(f"   ⚠️  preço indisponível [{nome}]: {str(e)[:60]}")
+            print(f"   ⚠️  preço indisponível [{nome}]: {e}")
             resultados.append({
                 "nome": nome, "preco": None,
                 "var_3d": None, "var_7d": None, "var_30d": None,

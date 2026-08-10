@@ -35,10 +35,18 @@ YTDLP  = [_ytdlp] if _ytdlp else [sys.executable, "-m", "yt_dlp"]
 # vídeo selecionado. min_secs filtra lives em andamento (duração ~0) e shorts.
 # PicPay (Diário Econômico) publica episódios curtos (~5min) em /videos, por
 # isso usa um mínimo menor; os demais são lives longas em /streams.
+#
+# "retries" (opcional, default TRANSCRIPT_RETRIES): o Investing usa 1 (sem
+# retry) porque o YouTube demora ~13h para finalizar o processamento da live
+# dele (confirmado via release_timestamp/timestamp em 09/08/2026 — outros
+# canais finalizam em ~35min). Nenhum retry dentro da janela de execução das
+# 10:30 resolve isso, então esperar 10/20min a mais só atrasa o digest à toa.
+# O canal deve mesmo ficar de fora do digest na maioria dos dias — decisão
+# aceita, não é bug a corrigir.
 CHANNELS: dict[str, dict] = {
     "btg":       {"url": "https://www.youtube.com/@BTGPactual/streams",            "min_secs": MIN_VIDEO_SECS},
     "genial":    {"url": "https://www.youtube.com/@genialinvestimentos/streams",   "min_secs": MIN_VIDEO_SECS},
-    "investing": {"url": "https://www.youtube.com/@investingcombr/streams",        "min_secs": MIN_VIDEO_SECS},
+    "investing": {"url": "https://www.youtube.com/@investingcombr/streams",        "min_secs": MIN_VIDEO_SECS, "retries": 1},
     "xp":        {"url": "https://www.youtube.com/@XP_Oficial/streams",            "min_secs": MIN_VIDEO_SECS},
     "picpay":    {"url": "https://www.youtube.com/@PodcastDiarioEconomico/videos", "min_secs": 120},
 }

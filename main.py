@@ -1,5 +1,6 @@
 import ctypes
 import time
+import traceback
 from datetime import date, datetime, timedelta
 
 from config import CHANNELS, TRANSCRIPT_RETRIES, TRANSCRIPT_RETRY_WAIT
@@ -28,7 +29,7 @@ def _impedir_suspensao() -> None:
         else:
             print("⚠️  SetThreadExecutionState retornou 0 — suspensão não bloqueada")
     except Exception as e:
-        print(f"⚠️  Não foi possível bloquear a suspensão: {str(e)[:80]}")
+        print(f"⚠️  Não foi possível bloquear a suspensão: {e}")
 
 
 def _permitir_suspensao() -> None:
@@ -81,16 +82,17 @@ def _executar() -> None:
 
             sleep_humano(5, 12)
 
+            retries = cfg.get("retries", TRANSCRIPT_RETRIES)
             transcricao = None
             ultimo_erro = None
-            for tentativa in range(1, TRANSCRIPT_RETRIES + 1):
+            for tentativa in range(1, retries + 1):
                 try:
                     transcricao = obter_transcricao(video["url"])
                     break
                 except Exception as e:
                     ultimo_erro = e
-                    if tentativa < TRANSCRIPT_RETRIES:
-                        print(f"   ⏳ Transcrição indisponível — aguardando 10min (tentativa {tentativa}/{TRANSCRIPT_RETRIES})...")
+                    if tentativa < retries:
+                        print(f"   ⏳ Transcrição indisponível — aguardando 10min (tentativa {tentativa}/{retries})...")
                         time.sleep(TRANSCRIPT_RETRY_WAIT)
 
             if transcricao is None:
@@ -101,8 +103,13 @@ def _executar() -> None:
             print(f'   ✅ OK | {transcricao["duracao_segundos"] // 60}min | {len(transcricao["texto_completo"]):,} chars\n')
 
         except Exception as e:
-            ausentes[canal] = f"erro técnico: {str(e)[:120]}"
-            print(f"   ❌ Erro: {str(e)[:120]}\n")
+            # No email (via `ausentes`) o texto fica curto e legível. No log,
+            # a mensagem completa + traceback ficam sem corte — é o que
+            # permite diagnosticar a causa real depois (mensagens truncadas
+            # em 80-120 chars já esconderam informação importante no passado).
+            ausentes[canal] = f"erro técnico: {str(e)[:200]}"
+            print(f"   ❌ Erro: {e}")
+            print(f"   {traceback.format_exc()}\n")
 
     print(f"📊 {len(transcricoes)}/{len(CHANNELS)} canais coletados\n")
 
@@ -118,7 +125,8 @@ def _executar() -> None:
     try:
         precos = obter_precos()
     except Exception as e:
-        print(f"⚠️  Falha ao buscar preços: {str(e)[:80]}")
+        print(f"⚠️  Falha ao buscar preços: {e}")
+        print(f"   {traceback.format_exc()}")
         precos = []
 
     enviar_digest(resumo, data_ref, list(transcricoes.keys()), ausentes, videos_info, precos)
