@@ -10,19 +10,27 @@ if (-not (Test-Path $runScript)) {
     exit 1
 }
 
-# ---------- Tarefa 1: acorda o PC às 11h55 ----------
+# ---------- Tarefa 1: acorda o PC às 10h25 ----------
+# A acao roda wake_hold.ps1, que segura o PC acordado por 10min (ES_SYSTEM_REQUIRED).
+# Sem isso, o WakeToRun acorda o PC e ele volta a dormir sozinho em ~2-3min -
+# antes da _Run disparar as 10:30 -, derrubando o digest para a tarde. Ver
+# comentario no topo de wake_hold.ps1 para o diagnostico completo.
+$wakeScript   = Join-Path $projectDir "wake_hold.ps1"
 $wakeAction   = New-ScheduledTaskAction `
-    -Execute "cmd.exe" `
-    -Argument "/c echo wake"
+    -Execute "powershell.exe" `
+    -Argument "-NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$wakeScript`"" `
+    -WorkingDirectory $projectDir
 
 $wakeTrigger  = New-ScheduledTaskTrigger `
     -Weekly `
     -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday `
     -At "10:25AM"
 
+# ExecutionTimeLimit precisa cobrir os 10min de hold do wake_hold.ps1 + margem,
+# senao o Task Scheduler mata o processo antes do hold terminar.
 $wakeSettings = New-ScheduledTaskSettingsSet `
     -WakeToRun `
-    -ExecutionTimeLimit (New-TimeSpan -Minutes 2) `
+    -ExecutionTimeLimit (New-TimeSpan -Minutes 12) `
     -MultipleInstances IgnoreNew
 
 # S4U = "Executar estando o usuario conectado ou nao". Sem isso, um reboot de
