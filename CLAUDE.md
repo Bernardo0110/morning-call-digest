@@ -27,9 +27,12 @@ py main.py
 | `emailer.py` | Construção e envio de todos os tipos de email (inclui o painel de preços) |
 | `run.ps1` | Carrega `secrets.env`, roda `main.py`, suspende PC após 30s |
 | `setup_task.ps1` | Registra `MorningCallDigest_Wake` (10:25) e `_Run` (10:30) no Task Scheduler |
+| `wake_hold.ps1` | Ação da tarefa `_Wake` — segura o PC acordado até a `_Run` assumir |
 | `config.json` | Lista de destinatários do email |
 | `secrets.env` | Credenciais locais (gitignored) |
-| `logs/YYYY-MM-DD.log` | Log de cada execução |
+| `logs/YYYY-MM-DD.log` | Log de cada execução (timestamp por linha; stderr do Python incluído) |
+| `logs/YYYY-MM-DD.error.log` | Stderr completo do Python quando o processo termina com exit code != 0 |
+| `logs/YYYY-MM-DD.wake.log` | Log do `wake_hold.ps1` — confirma se o hold de acordar o PC rodou |
 
 ## Decisões de arquitetura
 
@@ -45,11 +48,20 @@ Nesse ponto a IA recebe apenas 1–2 vídeos do dia (já filtrados por data), n�
 **Por que `WakeToRun` só no `_Wake` e não no `_Run`?**
 Ter `WakeToRun` na tarefa `_Run` cria um wake timer interno no Windows que acorda o PC ~2h após a execução, causando dupla execução. A tarefa `_Wake` às 10:25 já garante que o PC estará acordado quando `_Run` disparar às 10:30.
 
+**Por que `_Wake` roda `wake_hold.ps1` em vez de só `echo wake`?**
+`WakeToRun` acorda o PC, mas só o mantém ligado enquanto a própria tarefa `_Wake` está rodando — como `echo wake` termina em menos de 1s, o Windows não tinha mais motivo pra continuar acordado e voltava a suspender sozinho em ~2–3min, antes da `_Run` disparar às 10:30. Isso derrubava o digest para a tarde/noite, só rodando via `StartWhenAvailable` quando alguém ligava o PC manualmente (confirmado no Visualizador de Eventos do Windows em 17/06, 25/06, 09/07, 10/07, 17/07, 22/07 e 30/07/2026 — todos com padrão idêntico: wake às 10:24:33, suspensão de novo minutos depois, e só religam via botão de energia horas mais tarde). `wake_hold.ps1` segura o PC acordado (`ES_SYSTEM_REQUIRED`) por 10min, cobrindo a lacuna até `_Run` assumir e o próprio `main.py` travar a suspensão (`_impedir_suspensao`). Isso não atrasa o desligamento no fim do dia: a suspensão forçada do `run.ps1` (`SetSuspendState`) ignora bloqueios de `ES_SYSTEM_REQUIRED`.
+
 **Guard de dupla execução em `run.ps1`**
-Se o log do dia já contiver `"Script finalizado"`, o `run.ps1` aborta imediatamente e volta a suspender o PC. Isso cobre qualquer cenário de re-disparo inesperado do Task Scheduler.
+Se o log do dia já contiver `"Script finalizado OK"`, o `run.ps1` aborta imediatamente e volta a suspender o PC. Isso cobre qualquer cenário de re-disparo inesperado do Task Scheduler. Note que o marcador é `"...OK"`, não só `"Script finalizado"`: uma execução que termina com erro (`"Script finalizado COM ERRO (exit code N)"`) **não** ativa o guard — de propósito, para deixar uma tentativa seguinte (manual ou via `StartWhenAvailable`) rodar ainda no mesmo dia em vez de ficar travada até amanhã.
+
+**Diagnóstico de crash e de wake em `run.ps1`**
+Antes de rodar `main.py`, o `run.ps1` loga o horário do último boot do PC e a saída de `powercfg /lastwake` — isso já teria respondido em segundos ao diagnóstico feito manualmente em 09/08/2026 (que exigiu vasculhar o Visualizador de Eventos na mão) sempre que o horário de início for atípico. Depois, o stderr do Python é redirecionado para um arquivo (não `2>&1` — mistura no stream de sucesso e gera `NativeCommandError` no PowerShell 5.1), apensado ao log principal e ao `.error.log`, e o exit code é checado: antes disso, um crash não tratado do `main.py` (traceback indo só para o console de uma sessão S4U sem interface) terminava o log exatamente como um dia de sucesso, porque `"Script finalizado"` era escrito incondicionalmente.
 
 **Por que o canal do PicPay (Diário Econômico) é diferente?**
 O `@PodcastDiarioEconomico` não tem aba `/streams` — é publicado como vídeo em `/videos`, então a URL em `CHANNELS` aponta para `/videos`. Os episódios são curtos (~5min), abaixo do `MIN_VIDEO_SECS=300` dos demais canais; por isso o picpay tem `min_secs=120` em `CHANNELS` (cada canal tem seu mínimo). Os títulos podem voltar traduzidos para inglês ("Economic Daily"), então o prompt de seleção reconhece "Diário Econômico/Economic Daily". O filtro por data usa `upload_date` (metadado, independe do idioma do título).
+
+**Por que o Investing quase nunca entra no digest, e por que ele não faz retry?**
+Investigado em 09/08/2026: o vídeo do Investing chega a ser encontrado e selecionado, mas o YouTube demora **~13h** para finalizar o processamento da live dele (visto comparando `release_timestamp` com `timestamp` via `yt-dlp` — outros canais, como o BTG, finalizam em ~35min). Nenhum retry dentro da janela das 10:30 resolve isso, então o Investing tem `"retries": 1` em `CHANNELS` (sem espera de 10min) — insistir só atrasa o digest à toa. Além disso, desde ~24/07/2026 o canal também passou a postar com bem menos frequência no `/streams` (o `/videos` dele é conteúdo temático avulso, não serve de fallback). Ficar de fora do digest na maioria dos dias é esperado, não é bug.
 
 **Por que os preços não passam pela IA?**
 O painel de mercado é informativo e determinístico (Yahoo Finance via `yfinance`, sem API key). Passar cotações pela IA só adicionaria custo e risco de alucinação. Os preços são buscados em `prices.py` e renderizados direto na tabela do email, em paralelo ao resumo. Qualquer falha (Yahoo fora do ar, símbolo sem dado) é capturada por ativo e/ou no `main.py` — o digest sempre é enviado, no pior caso com "—" na linha do ativo.
