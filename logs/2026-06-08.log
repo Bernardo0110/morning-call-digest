@@ -1,0 +1,26 @@
+﻿[10:30:01] Iniciando Morning Call Digest | python=C:\Users\berbe\AppData\Local\Microsoft\WindowsApps\py.exe
+🔌 Suspensão por ociosidade bloqueada durante a execução
+🗓️  Digest de: 08/06/2026
+
+🔍 Verificando bloqueio de IP...
+✅ IP liberado — iniciando coleta
+
+📡 [btg]
+   ❌ Erro: Command '['C:\\Users\\berbe\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe', '-m', 'yt_dlp', '--flat-playlist',
+
+📡 [genial]
+   ❌ Erro: Command '['C:\\Users\\berbe\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe', '-m', 'yt_dlp', '--flat-playlist',
+
+📡 [investing]
+   ❌ Erro: Command '['C:\\Users\\berbe\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe', '-m', 'yt_dlp', '--flat-playlist',
+
+📡 [xp]
+   ❌ Erro: Command '['C:\\Users\\berbe\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe', '-m', 'yt_dlp', '--flat-playlist',
+
+📡 [picpay]
+   ❌ Erro: Command '['C:\\Users\\berbe\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe', '-m', 'yt_dlp', '--flat-playlist',
+
+📊 0/5 canais coletados
+
+❌ Nenhum canal disponível — enviando email de aviso
+[10:36:56] Script finalizado

@@ -1,0 +1,43 @@
+﻿[10:30:02] Iniciando Morning Call Digest | python=C:\Users\berbe\AppData\Local\Microsoft\WindowsApps\py.exe
+🔌 Suspensão por ociosidade bloqueada durante a execução
+🗓️  Digest de: 24/06/2026
+
+🔍 Verificando bloqueio de IP...
+✅ IP liberado — iniciando coleta
+
+📡 [btg]
+   📋 [btg] 1 vídeo(s) do dia — IA selecionando...
+   ✅ [btg] 🔵 24/06 - Kospi sobe 3,3% e Nasdaq futuro 0,3%; petróle (25min)
+      Motivo IA: O vídeo possui o título explícito de 'Morning Call', data correspondente e aborda o panorama macroeconômico antes da abertura do mercado.
+   ✅ OK | 25min | 24,513 chars
+
+📡 [genial]
+   📋 [genial] 2 vídeo(s) do dia — IA selecionando...
+   ✅ [genial] 🔴 24/06 Nasdaq reage à tecnologia e petróleo cai com Or (50min)
+      Motivo IA: O vídeo possui o título explícito de Morning Call e aborda o panorama macroeconômico do dia 24/06/2026.
+   ✅ OK | 50min | 43,172 chars
+
+📡 [investing]
+   📋 [investing] 1 vídeo(s) do dia — IA selecionando...
+   ✅ [investing] Mercado reage a ata dura do Copom em meio a realização  (58min)
+      Motivo IA: O vídeo possui o título explícito de Morning Call e foi publicado na data solicitada, abordando o panorama macroeconômico.
+   ⏳ Transcrição indisponível — aguardando 10min (tentativa 1/3)...
+   ⏳ Transcrição indisponível — aguardando 10min (tentativa 2/3)...
+   ❌ Erro: 
+Could not retrieve a transcript for the video https://www.youtube.com/watch?v=lDzLeDvqbYI! This is most likely caused b
+
+📡 [xp]
+   📋 [xp] 1 vídeo(s) do dia — IA selecionando...
+   ✅ [xp] 🟡 24/06/2026 | IA, ENERGIA e mais: o peso da CHINA nos  (35min)
+      Motivo IA: O vídeo possui a data correta, o termo 'Morning Call' no título e aborda o panorama macroeconômico do dia.
+   ✅ OK | 34min | 33,370 chars
+
+📡 [picpay]
+   📋 [picpay] 1 vídeo(s) do dia — IA selecionando...
+   ✅ [picpay] #925 Economic Daily: Does the Copom minutes change the  (5min)
+      Motivo IA: O vídeo é um podcast diário de economia que analisa o cenário macroeconômico na data solicitada.
+   ✅ OK | 5min | 4,575 chars
+
+📊 4/5 canais coletados
+
+[11:07:00] Script finalizado

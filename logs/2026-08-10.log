@@ -1,0 +1,50 @@
+﻿[10:30:00] Iniciando Morning Call Digest | python=C:\Users\berbe\AppData\Local\Microsoft\WindowsApps\py.exe
+[10:30:00] Ultimo boot do PC: 2026-08-08 11:01:11
+[10:30:00] powercfg /lastwake: Contagem de Histórico de Ativação - 1 | Histórico de Ativação [0] |   Contagem da Origem de Ativação - 1 |   Origem de Ativação [0] |     Tipo: Presume o Temporizador de Ativação |     Proprietário: [SERVICE] \Device\HarddiskVolume3\Windows\System32\svchost.exe (SystemEventsBroker) |     Razão Fornecida do Proprietário: O Windows irá executar a tarefa agendada 'NT TASK\MorningCallDigest_Wake' que solicitou a ativação do computador.
+[10:44:17] 🔌 Suspensão por ociosidade bloqueada durante a execução
+[10:44:17] 🗓️  Digest de: 10/08/2026
+[10:44:17] 
+[10:44:17] 🔍 Verificando bloqueio de IP...
+[10:44:17] ✅ IP liberado — iniciando coleta
+[10:44:17] 
+[10:44:17] 📡 [btg]
+[10:44:17]    📋 [btg] 1 vídeo(s) do dia — IA selecionando...
+[10:44:17]    ✅ [btg] 🔵 10/08 - Estreito de Ormuz segue sob pressão; payroll  (24min)
+[10:44:17]       Motivo IA: O vídeo possui o título 'Morning Call', a data correta e aborda o panorama macroeconômico antes da abertura do mercado.
+[10:44:17]    ✅ OK | 24min | 19,501 chars
+[10:44:17] 
+[10:44:17] 📡 [genial]
+[10:44:17]    📋 [genial] 2 vídeo(s) do dia — IA selecionando...
+[10:44:17]    ✅ [genial] 🔴 10/08 Bolsas nas máximas com Payroll e petróleo dispa (44min)
+[10:44:17]       Motivo IA: O vídeo possui o título 'Morning Call' e aborda o panorama macroeconômico do dia 10/08/2026.
+[10:44:17]    ✅ OK | 43min | 41,644 chars
+[10:44:17] 
+[10:44:17] 📡 [investing]
+[10:44:17]    ⚠️  Ausente: nenhum vídeo publicado em 10/08/2026 (último: 20260805)
+[10:44:17] 
+[10:44:17] 📡 [xp]
+[10:44:17]    📋 [xp] 1 vídeo(s) do dia — IA selecionando...
+[10:44:17]    ✅ [xp] 🟡 10/08/2026 | A BOLSA americana vai subir MAIS? Perspe (34min)
+[10:44:17]       Motivo IA: O vídeo possui a data correta e o termo 'Morning Call' no título, indicando o panorama de mercado matinal.
+[10:44:17]    ✅ OK | 34min | 29,542 chars
+[10:44:17] 
+[10:44:17] 📡 [picpay]
+[10:44:17]    📋 [picpay] 1 vídeo(s) do dia — IA selecionando...
+[10:44:17]    ✅ [picpay] #957 Economic Daily: Can the CPI and IPCA turn things a (6min)
+[10:44:17]       Motivo IA: O vídeo é um podcast diário de economia (Economic Daily) focado no panorama macroeconômico do dia 10/08/2026.
+[10:44:17]    ✅ OK | 6min | 5,416 chars
+[10:44:17] 
+[10:44:17] 📊 4/5 canais coletados
+[10:44:17] 
+[10:44:17] 
+[10:44:17] ============================================================
+[10:44:17] Prezado investidor, informo que não houve publicação de conteúdo pelo canal Investing em 10/08/2026, sendo o último registro datado de 05/08/2026. O cenário macroeconômico global é marcado pela repercussão do *payroll* norte-americano, que surpreendeu negativamente ao mostrar destruição de vagas, reforçando a tese de desaceleração da economia dos EUA. Segundo o BTG, a Genial e a XP, esse dado reduziu as apostas de alta de juros pelo Federal Reserve, impulsionando as bolsas americanas, enquanto o PicPay destaca que o mercado agora aguarda o CPI de quarta-feira para definir se haverá uma pausa no ciclo de aperto monetário em setembro.
+[10:44:17] 
+[10:44:17] No Brasil, há consenso entre os canais de que o mercado local descolou do otimismo externo na última sexta-feira, com o Ibovespa encerrando em queda. A Genial e o PicPay atribuem esse movimento a uma saída de fluxo estrangeiro e ajustes de posições, especialmente em Petrobras — que decepcionou investidores pela sinalização de ausência de dividendos extraordinários — e no setor financeiro. Enquanto a XP alerta que a perda do suporte em 168.000 pontos seria um sinal técnico de alerta, o PicPay projeta uma recuperação para 174.000 pontos, sustentada pela expectativa de dados de inflação (IPCA) mais favoráveis e pela continuidade do *carry trade*.
+[10:44:17] 
+[10:44:17] A semana é concentrada em indicadores de inflação e atividade, com destaque para o IPCA e a ata do COPOM na terça-feira, além do CPI e PPI nos Estados Unidos. Sobre riscos, o BTG, a Genial e a XP convergem ao apontar a persistência das tensões geopolíticas no Oriente Médio e o impasse no estreito de Ormus como fatores que mantêm o petróleo pressionado, apesar das tentativas diplomáticas. Adicionalmente, a Genial e a XP destacam que o cenário eleitoral brasileiro e a desaceleração do PIB, conforme apontado pelo relatório Focus, exigem cautela, embora a XP avalie que a desinflação em curso possa, em última análise, favorecer a convergência da meta de juros.
+[10:44:17] ============================================================
+[10:44:17] 
+[10:44:17] 📈 Buscando preços de mercado...
+[10:44:17] ✅ Email enviado para: bernardo.mrlima0110@gmail.com, tdvuono@gmail.com, pedrocavaloliveira@gmail.com, mariaclaudiareizinger6@gmail.com
+[10:44:17] Script finalizado OK
