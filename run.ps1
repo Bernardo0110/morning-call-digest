@@ -66,6 +66,11 @@ if (-not $python) { Abort "Python nao encontrado no PATH (py / python)" }
 
 $env:PYTHONIOENCODING = 'utf-8'
 $env:PYTHONUTF8       = '1'
+# Sem isso o Python usa buffer em bloco no stdout quando a saida nao e' um
+# terminal (caso do pipe abaixo): todo print() so chega no run.ps1 de uma vez,
+# no fim do processo - e o timestamp por linha vira inutil (todas as linhas
+# saem coladas no mesmo segundo). Forca flush a cada linha.
+$env:PYTHONUNBUFFERED = '1'
 
 # Decodifica a saida UTF-8 do Python corretamente (senao acentos e emoji corrompem)
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
