@@ -1,0 +1,50 @@
+﻿[10:30:00] Iniciando Morning Call Digest | python=C:\Users\berbe\AppData\Local\Microsoft\WindowsApps\py.exe
+[10:30:01] Ultimo boot do PC: 2026-08-08 11:01:11
+[10:30:01] powercfg /lastwake: Contagem de Histórico de Ativação - 1 | Histórico de Ativação [0] |   Contagem da Origem de Ativação - 1 |   Origem de Ativação [0] |     Tipo: Presume o Temporizador de Ativação |     Proprietário: [SERVICE] \Device\HarddiskVolume3\Windows\System32\svchost.exe (SystemEventsBroker) |     Razão Fornecida do Proprietário: O Windows irá executar a tarefa agendada 'NT TASK\MorningCallDigest_Wake' que solicitou a ativação do computador.
+[10:30:05] 🔌 Suspensão por ociosidade bloqueada durante a execução
+[10:30:05] 🗓️  Digest de: 11/08/2026
+[10:30:05] 
+[10:30:05] 🔍 Verificando bloqueio de IP...
+[10:30:06] ✅ IP liberado — iniciando coleta
+[10:30:06] 
+[10:30:06] 📡 [btg]
+[10:32:43]    📋 [btg] 1 vídeo(s) do dia — IA selecionando...
+[10:32:45]    ✅ [btg] 🔵 11/08 - Petróleo sobe forte com impasse em Ormuz; ata (20min)
+[10:32:45]       Motivo IA: O vídeo possui o título explícito de 'Morning Call', foi publicado na data correta e aborda o panorama macroeconômico do dia.
+[10:32:53]    ✅ OK | 20min | 20,463 chars
+[10:32:53] 
+[10:33:13] 📡 [genial]
+[10:35:42]    📋 [genial] 2 vídeo(s) do dia — IA selecionando...
+[10:35:43]    ✅ [genial] 🔴 11/08 Petróleo sobe e pressiona futuros antes do CPI  (37min)
+[10:35:43]       Motivo IA: O vídeo apresenta o panorama macroeconômico do dia antes da abertura do mercado, caracterizando-se como um Morning Call.
+[10:35:54]    ✅ OK | 36min | 34,836 chars
+[10:35:54] 
+[10:36:19] 📡 [investing]
+[10:40:05]    ⚠️  Ausente: nenhum vídeo publicado em 11/08/2026 (último: 20260805)
+[10:40:05] 
+[10:40:20] 📡 [xp]
+[10:43:18]    📋 [xp] 1 vídeo(s) do dia — IA selecionando...
+[10:43:19]    ✅ [xp] 🟡 11/08/2026 | ATA do COPOM e resultados de Embraer (EM (30min)
+[10:43:19]       Motivo IA: O vídeo possui a data correta, o título explícito de Morning Call e aborda o panorama macroeconômico do dia.
+[10:43:29]    ✅ OK | 29min | 25,424 chars
+[10:43:29] 
+[10:43:44] 📡 [picpay]
+[10:46:25]    📋 [picpay] 1 vídeo(s) do dia — IA selecionando...
+[10:46:26]    ✅ [picpay] #958 Economic Daily: Ibovespa falls for the fifth strai (4min)
+[10:46:26]       Motivo IA: O vídeo é um podcast diário de economia que cobre o panorama do mercado na data solicitada.
+[10:46:33]    ✅ OK | 4min | 4,104 chars
+[10:46:33] 
+[10:46:33] 📊 4/5 canais coletados
+[10:46:33] 
+[10:46:40] 
+[10:46:40] ============================================================
+[10:46:40] O mercado financeiro desta terça-feira, 11 de agosto de 2026, opera sob forte influência da divulgação da ata do COPOM e do IPCA de julho, eventos que balizam as expectativas para a política monetária brasileira. Ressalta-se que o canal Investing não publicou conteúdos nesta data, estando ausente desta análise. Segundo o BTG, a ata do COPOM sinaliza a continuidade do ciclo de cortes de juros, com a expectativa de uma redução de 0,25 p.p. na próxima reunião, embora o cenário externo adverso e a volatilidade do petróleo limitem uma postura mais agressiva. A Genial destaca que a ata trouxe pontos mais benignos que a anterior, apesar da cautela com a desancoragem das expectativas de inflação de longo prazo.
+[10:46:40] 
+[10:46:40] Há consenso entre BTG, Genial, XP e PicPay de que o petróleo, apesar de ter recuado levemente hoje após a alta expressiva de ontem, permanece como o principal vetor de risco global devido ao conflito no Oriente Médio. Enquanto o BTG e o PicPay alertam que a alta da commodity pressiona a inflação e os juros globais, prejudicando o *equity* em geral, a XP observa que o mercado tem priorizado o micro, com empresas de tecnologia e inteligência artificial ditando o ritmo nos EUA. O PicPay aponta que o Ibovespa busca uma recuperação técnica após cinco quedas consecutivas, enquanto a XP estabelece os 168 mil pontos como um nível técnico crítico para a manutenção da tese de investimento no Brasil.
+[10:46:40] 
+[10:46:40] No âmbito corporativo, a Embraer foi destaque na XP, sendo classificada como *top pick* no setor de bens de capital devido à sólida carteira de pedidos e à redução de riscos operacionais. Em contrapartida, a Genial trouxe uma análise detalhada sobre os resultados de Itaúsa e BTG Pactual, destacando a resiliência dos bancos e a manutenção de recomendações de compra, apesar do cenário de saída de capital estrangeiro. O PicPay reforça que, embora o diferencial de juros brasileiro ainda atraia o *carry trade*, a aversão ao risco global e a incerteza eleitoral continuam a pressionar o câmbio e a inclinação da curva de juros local.
+[10:46:40] ============================================================
+[10:46:40] 
+[10:46:40] 📈 Buscando preços de mercado...
+[10:46:48] ✅ Email enviado para: bernardo.mrlima0110@gmail.com, tdvuono@gmail.com, pedrocavaloliveira@gmail.com, mariaclaudiareizinger6@gmail.com, caiotav1234@gmail.com, guilherme.gleisner@gmail.com, dnlopes06@gmail.com
+[10:46:48] Script finalizado OK

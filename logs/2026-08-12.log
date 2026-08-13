@@ -1,0 +1,10 @@
+﻿[10:30:00] Iniciando Morning Call Digest | python=C:\Users\berbe\AppData\Local\Microsoft\WindowsApps\py.exe
+[10:30:01] Ultimo boot do PC: 2026-08-08 11:01:09
+[10:30:01] powercfg /lastwake: Contagem de Histórico de Ativação - 1 | Histórico de Ativação [0] |   Contagem da Origem de Ativação - 1 |   Origem de Ativação [0] |     Tipo: Presume o Temporizador de Ativação |     Proprietário: [SERVICE] \Device\HarddiskVolume3\Windows\System32\svchost.exe (SystemEventsBroker) |     Razão Fornecida do Proprietário: O Windows irá executar a tarefa agendada 'NT TASK\MorningCallDigest_Wake' que solicitou a ativação do computador.
+[10:30:05] 🔌 Suspensão por ociosidade bloqueada durante a execução
+[10:30:05] 🗓️  Digest de: 12/08/2026
+[10:30:05] 
+[10:30:05] 🔍 Verificando bloqueio de IP...
+[10:30:06] 🚫 IP bloqueado — abortando. Email de aviso enviado.
+[10:30:10] ✅ Email enviado para: bernardo.mrlima0110@gmail.com, tdvuono@gmail.com, pedrocavaloliveira@gmail.com, mariaclaudiareizinger6@gmail.com, caiotav1234@gmail.com, guilherme.gleisner@gmail.com, dnlopes06@gmail.com
+[10:30:10] Script finalizado OK

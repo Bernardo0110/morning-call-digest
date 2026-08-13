@@ -1,0 +1,4 @@
+﻿[10:25:00] wake_hold.ps1 iniciado
+[10:25:00] powercfg /lastwake: Contagem de Histórico de Ativação - 1 | Histórico de Ativação [0] |   Contagem da Origem de Ativação - 1 |   Origem de Ativação [0] |     Tipo: Presume o Temporizador de Ativação |     Proprietário: [SERVICE] \Device\HarddiskVolume3\Windows\System32\svchost.exe (SystemEventsBroker) |     Razão Fornecida do Proprietário: O Windows irá executar a tarefa agendada 'NT TASK\MorningCallDigest_Wake' que solicitou a ativação do computador.
+[10:25:02] PC segurado acordado ate ~10:35:02
+[10:35:02] Hold liberado - suspensao por ociosidade volta ao normal
