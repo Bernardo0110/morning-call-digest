@@ -26,10 +26,24 @@ MIN_VIDEO_SECS        = 300        # abaixo disso = live provavelmente em andame
 MAX_TRANSCRIPT_CHARS  = 40_000
 IP_CHECK_VIDEO        = "jNQXAC9IVRw"  # "Me at the zoo" — sempre tem transcrição
 
+# Bloqueios de IP costumam ser rate-limit temporário, não um ban permanente.
+# Antes de desistir do dia inteiro, o check é refeito depois de uma espera.
+IP_CHECK_RETRIES    = 2
+IP_CHECK_RETRY_WAIT = 5 * 60   # segundos entre tentativas do check de IP
+
+# cookies.txt (formato Netscape, exportado de uma conta Google dedicada logada
+# no navegador) é opcional. Se existir, autentica as requisições ao YouTube —
+# tráfego autenticado é tratado de forma bem menos suspeita pelo anti-bot do
+# que tráfego anônimo. Ausência do arquivo não quebra nada, só volta a rodar
+# anônimo. Nunca commitar (mesma categoria de secrets.env).
+COOKIES_FILE = Path(__file__).parent / "cookies.txt"
+
 client = genai.Client(api_key=GEMINI_KEY)
 
 _ytdlp = shutil.which("yt-dlp")
 YTDLP  = [_ytdlp] if _ytdlp else [sys.executable, "-m", "yt_dlp"]
+if COOKIES_FILE.exists():
+    YTDLP = YTDLP + ["--cookies", str(COOKIES_FILE)]
 
 # Cada canal aponta para a aba de vídeos/lives e define a duração mínima do
 # vídeo selecionado. min_secs filtra lives em andamento (duração ~0) e shorts.

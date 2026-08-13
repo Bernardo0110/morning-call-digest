@@ -1,3 +1,4 @@
+import http.cookiejar
 import json
 import random
 import re
@@ -5,11 +6,12 @@ import subprocess
 import time
 from datetime import date
 
+import requests
 from google.genai import types
-from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api import RequestBlocked, YouTubeTranscriptApi
 
 from config import (
-    IP_CHECK_VIDEO, MAX_TRANSCRIPT_CHARS, MIN_VIDEO_SECS,
+    COOKIES_FILE, IP_CHECK_VIDEO, MAX_TRANSCRIPT_CHARS, MIN_VIDEO_SECS,
     MODEL, YTDLP, client,
 )
 
@@ -57,20 +59,54 @@ def sleep_humano(minimo: float, maximo: float) -> None:
     time.sleep(random.uniform(minimo, maximo))
 
 
+_sessao_carregada = False
+_sessao: requests.Session | None = None
+
+
+def _obter_sessao() -> requests.Session | None:
+    """Sessão HTTP com cookies de cookies.txt, se o arquivo existir.
+    Carregada uma única vez e reaproveitada em todas as chamadas à
+    youtube_transcript_api (que não expõe mais um parâmetro de cookie_path
+    próprio — precisa ser um requests.Session já autenticado)."""
+    global _sessao, _sessao_carregada
+    if not _sessao_carregada:
+        _sessao_carregada = True
+        if COOKIES_FILE.exists():
+            try:
+                jar = http.cookiejar.MozillaCookieJar(str(COOKIES_FILE))
+                jar.load(ignore_discard=True, ignore_expires=True)
+                sessao = requests.Session()
+                sessao.cookies = jar
+                _sessao = sessao
+                print("🍪 cookies.txt carregado — requests autenticados")
+            except Exception as e:
+                print(f"⚠️  Falha ao carregar cookies.txt ({e}) — seguindo sem autenticação")
+    return _sessao
+
+
 def verificar_ip_bloqueado() -> bool:
     try:
-        YouTubeTranscriptApi().list(IP_CHECK_VIDEO)
+        YouTubeTranscriptApi(http_client=_obter_sessao()).list(IP_CHECK_VIDEO)
         return False
+    except RequestBlocked as e:
+        # RequestBlocked (e sua subclasse IpBlocked) é o sinal específico da
+        # lib pra bloqueio real. Logar a causa completa aqui é o que permite
+        # diferenciar bloqueio de verdade de qualquer outro erro no log.
+        print(f"   🚫 Causa reportada pela lib: {e}")
+        return True
     except Exception as e:
-        msg = str(e).lower()
-        return "blocked" in msg or "bot" in msg or "ip" in msg
+        # Qualquer outro erro (timeout, DNS, vídeo de check indisponível etc.)
+        # não é bloqueio de IP — antes um match de substring solto (`"ip" in
+        # msg`) classificava isso como bloqueio e abortava o dia à toa.
+        print(f"   ⚠️  Erro no check de IP, não classificado como bloqueio: {e}")
+        return False
 
 
 def buscar_video_canal(
     canal: str,
     url: str,
     dia_alvo: date,
-    max_busca: int = 20,
+    max_busca: int = 8,
     min_secs: int = MIN_VIDEO_SECS,
 ) -> tuple[dict | None, str | None]:
     dia_str = dia_alvo.strftime("%Y%m%d")
@@ -190,7 +226,7 @@ def obter_transcricao(url_ou_id: str) -> dict:
         else re.search(r"(?:v=|youtu\.be/)([\w-]{11})", url_ou_id).group(1)
     )
 
-    lista = YouTubeTranscriptApi().list(video_id)
+    lista = YouTubeTranscriptApi(http_client=_obter_sessao()).list(video_id)
 
     transcript = None
     for tentativa in [

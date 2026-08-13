@@ -30,6 +30,7 @@ py main.py
 | `wake_hold.ps1` | Ação da tarefa `_Wake` — segura o PC acordado até a `_Run` assumir |
 | `config.json` | Lista de destinatários do email |
 | `secrets.env` | Credenciais locais (gitignored) |
+| `cookies.txt` | Cookies (formato Netscape) de uma conta Google dedicada, opcional, gitignored — ver decisão de robustez de IP abaixo |
 | `logs/YYYY-MM-DD.log` | Log de cada execução (timestamp por linha; stderr do Python incluído) |
 | `logs/YYYY-MM-DD.error.log` | Stderr completo do Python quando o processo termina com exit code != 0 |
 | `logs/YYYY-MM-DD.wake.log` | Log do `wake_hold.ps1` — confirma se o hold de acordar o PC rodou |
@@ -66,9 +67,18 @@ Investigado em 09/08/2026: o vídeo do Investing chega a ser encontrado e seleci
 **Por que os preços não passam pela IA?**
 O painel de mercado é informativo e determinístico (Yahoo Finance via `yfinance`, sem API key). Passar cotações pela IA só adicionaria custo e risco de alucinação. Os preços são buscados em `prices.py` e renderizados direto na tabela do email, em paralelo ao resumo. Qualquer falha (Yahoo fora do ar, símbolo sem dado) é capturada por ativo e/ou no `main.py` — o digest sempre é enviado, no pior caso com "—" na linha do ativo.
 
+**Robustez contra bloqueio de IP (12–13/08/2026)**
+Depois de 2 bloqueios em 10 dias (04/08 e 12/08/2026), quatro mudanças:
+- `verificar_ip_bloqueado()` (em `youtube.py`) capturava bloqueio via `"blocked" in msg or "bot" in msg or "ip" in msg` — um match de substring largo o bastante pra classificar qualquer erro não relacionado (timeout, DNS etc.) como bloqueio e abortar o dia à toa, sem deixar rastro da causa real no log. Passou a capturar especificamente `RequestBlocked`/`IpBlocked` (exceções tipadas da própria `youtube_transcript_api`) e logar a mensagem completa da lib — qualquer outro erro no check não é mais tratado como bloqueio.
+- O check de IP agora tenta de novo (`IP_CHECK_RETRIES=2`, espera `IP_CHECK_RETRY_WAIT=5min` entre tentativas) antes de desistir do dia — bloqueio costuma ser rate-limit temporário, não ban permanente, e não temos rede alternativa (hotspot/segunda conexão) pra fallback imediato.
+- `max_busca` (vídeos varridos por canal pra achar a data) caiu de 20 pra 8. O morning call sempre está entre os mais recentes; a busca de 20 gerava até ~100 chamadas de `yt-dlp` em poucos minutos, todo dia útil no mesmo horário — um padrão de tráfego bem "bot-like" que era provavelmente o principal gatilho do bloqueio.
+- Suporte opcional a `cookies.txt`: se o arquivo existir (exportado de uma conta Google **dedicada**, não a pessoal — a própria lib avisa que a conta usada pode ser banida), `YTDLP` passa `--cookies cookies.txt` e a `youtube_transcript_api` usa um `requests.Session()` autenticado com esses cookies (via `http_client=`, já que a lib removeu o parâmetro de cookie_path nativo). Tráfego autenticado é tratado de forma bem menos suspeita que anônimo. Sem o arquivo, tudo roda anônimo como antes — não é obrigatório.
+
+Se bloqueios voltarem a ser frequentes mesmo com essas mudanças: o provedor residencial usado aqui é IP dinâmico, então reiniciar o roteador antes da próxima execução costuma trocar o IP público e resetar bloqueios ligados a IP — não há automação disso ainda (dependeria de smart plug ou API de reboot do roteador), é um passo manual.
+
 ## Comportamento esperado por execução
 
-1. Verifica IP (se bloqueado, envia email de aviso e encerra)
+1. Verifica IP (até 2 tentativas com 5min de espera; se seguir bloqueado, envia email de aviso e encerra)
 2. Para cada canal: flat-playlist → data por vídeo → filtra dia → IA seleciona → baixa transcrição (até 3 tentativas com 10min de espera)
 3. Gemini gera resumo consolidado
 4. Busca preços de mercado (yfinance) para o painel — falha aqui nunca derruba o digest

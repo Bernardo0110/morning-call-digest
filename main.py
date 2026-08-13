@@ -3,7 +3,10 @@ import time
 import traceback
 from datetime import date, datetime, timedelta
 
-from config import CHANNELS, TRANSCRIPT_RETRIES, TRANSCRIPT_RETRY_WAIT
+from config import (
+    CHANNELS, IP_CHECK_RETRIES, IP_CHECK_RETRY_WAIT,
+    TRANSCRIPT_RETRIES, TRANSCRIPT_RETRY_WAIT,
+)
 from emailer import enviar_aviso_ip_bloqueado, enviar_aviso_sem_digest, enviar_digest
 from prices import obter_precos
 from summarizer import gerar_resumo
@@ -56,7 +59,19 @@ def _executar() -> None:
     print(f"🗓️  Digest de: {data_ref}\n")
 
     print("🔍 Verificando bloqueio de IP...")
-    if verificar_ip_bloqueado():
+    bloqueado = True
+    for tentativa in range(1, IP_CHECK_RETRIES + 1):
+        bloqueado = verificar_ip_bloqueado()
+        if not bloqueado:
+            break
+        if tentativa < IP_CHECK_RETRIES:
+            # Bloqueio costuma ser rate-limit temporário, não ban permanente —
+            # vale esperar e checar de novo antes de desistir do dia inteiro.
+            print(f"   ⏳ Aguardando {IP_CHECK_RETRY_WAIT // 60}min antes de checar de novo "
+                  f"(tentativa {tentativa}/{IP_CHECK_RETRIES})...")
+            time.sleep(IP_CHECK_RETRY_WAIT)
+
+    if bloqueado:
         print("🚫 IP bloqueado — abortando. Email de aviso enviado.")
         enviar_aviso_ip_bloqueado(data_ref)
         return
